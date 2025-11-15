@@ -1,0 +1,27 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: go-web-app
+  namespace: go-web-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      apps: go-web-app
+  template:
+    metadata:
+      labels:
+        apps: go-web-app
+    spec:
+      containers:
+        - name: go-web-app
+          image: pkmadhubani/go-app:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 125Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
