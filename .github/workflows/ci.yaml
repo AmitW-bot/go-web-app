@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'k8s/**'
+      - 'helm/**'
+jobs:
+  build:
+    runs: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+      - name: Setup Go environment
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.22'
+      - name: Build
+        run: go build -o go-build-app
+      - name: Test
+        uses: go test ./..
+  code-quality:
+    runs: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+      - name: Analyze code quality
+        uses: golangci/golangci-lint-action@v8
+        with:
+        version: v2.1
+  image-push:
+    runs: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v6
+        with: 
+          context: .
+          file: ./dockerfile
+          push: true
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/go-web-app:${{github.run_id}}
+  update-tag-in-helm:
+    runs: ubuntu-latest
+    needs: push  
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with: 
+          token: ${{secrets.TOKEN}}
+      - name: Update tag in helm chart
+        run: |
+           sed -i 's/tag: .*/tag: "${{github.run_id}}"/' helm/go-web-app-chart/values.yaml
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "Prakash kumar"
+          git config --global user.email "prakashkumar5332@gmail.com"
+          git add helm/go-web-app-chart/values.yaml
+          git commit -m "Update tag in helm chart"
+          git push
