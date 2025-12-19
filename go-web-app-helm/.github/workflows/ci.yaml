@@ -1,0 +1,82 @@
+name: CI Implementation for the project
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build:
+
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.5'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build application
+        run: go build -o go-web-app-binary
+
+      - name: Run unit tests
+        run: go test ./...
+
+  code-quality:
+
+    name: Code Quality (Linting)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.5'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint@v6
+        with:
+          version: v1.56.2
+          args: --timeout=5m
+
+  docker-build:
+
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract commit SHA
+        id: vars
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ci-go-web-image:${{ steps.vars.outputs.IMAGE_TAG }}
