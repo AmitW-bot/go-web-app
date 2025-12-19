@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "go-web-app-helm.fullname" . }}
+  labels:
+    app: {{ include "go-web-app-helm.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "go-web-app-helm.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "go-web-app-helm.name" . }}
+    spec:
+      containers:
+        - name: go-web-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
