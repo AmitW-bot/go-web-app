@@ -1,14 +1,20 @@
-name: CI
+i# CICD using GitHub actions
 
+name: CI/CD
+
+# Exclude the workflow to run on changes to the helm chart
 on:
   push:
     branches:
-      - main:
+      - main
     paths-ignore:
-      - 'README.md'
       - 'helm/**'
+      - 'k8s/**'
+      - 'README.md'
+
 jobs:
-   build:
+
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +31,7 @@ jobs:
 
     - name: Test
       run: go test ./...
-
+  
   code-quality:
     runs-on: ubuntu-latest
 
@@ -37,7 +43,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         version: v1.56.2
-
+  
   push:
     runs-on: ubuntu-latest
 
@@ -55,6 +61,7 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
     - name: Build and Push action
       uses: docker/build-push-action@v6
       with:
@@ -81,7 +88,7 @@ jobs:
     - name: Commit and push changes
       run: |
         git config --global user.email "rohanagarwal1599@gmail.com"
-        git config --global user.name "Rohan Agarwal"
+        git config --global user.name "rohanagarwal1599-sys"
         git add helm/go-web-app-chart/values.yaml
         git commit -m "Update tag in Helm chart"
         git push
