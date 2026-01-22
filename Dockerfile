@@ -1,7 +1,7 @@
 FROM golang:1.21 AS base
 WORKDIR /app
 COPY go.mod .
-RUN go mod download
+RUN go mod download .
 COPY . .
 RUN go build -o main .
 
