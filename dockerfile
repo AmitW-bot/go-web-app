@@ -3,7 +3,7 @@
 # and run the container
 
 # Start with a base image
-FROM golang:1.22-alpine as base
+FROM golang:1.23-alpine as base
 
 WORKDIR /app
 
