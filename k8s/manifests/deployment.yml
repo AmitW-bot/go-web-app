@@ -16,6 +16,18 @@ spec:
     spec:
       containers:
       - name: go-web-app
-        image: go-web-app:latest  # Replace with your actual image name/tag
+        image: AmitW-bot/go-web-app:v1  # Replace with your actual image name/tag
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /home
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /home
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
