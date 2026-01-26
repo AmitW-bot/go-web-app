@@ -25,12 +25,19 @@ func contactPage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "static/contact.html")
 }
 
+func healthPage(w http.ResponseWriter, r *http.Request) {
+	// Health check endpoint
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 func main() {
 
 	http.HandleFunc("/home", homePage)
 	http.HandleFunc("/courses", coursePage)
 	http.HandleFunc("/about", aboutPage)
 	http.HandleFunc("/contact", contactPage)
+	http.HandleFunc("/health", healthPage)
 
 	err := http.ListenAndServe("0.0.0.0:8080", nil)
 	if err != nil {
